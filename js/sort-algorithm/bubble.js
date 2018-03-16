@@ -35,3 +35,5 @@ var hopeResult = [ -20, -1, 1, 2, 5, 6, 9 ];
 var result = bubbleSort(arr, arr.length);
 
 console.log(hopeResult, result, hopeResult[3] === result[3]);
+
+module.exports = bubbleSort;
