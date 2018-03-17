@@ -1,1 +1,1 @@
-![image](https://github.com/TinyChou/data-structure/pixi.js/pixi.js.jpg)
+![image](https://github.com/TinyChou/data-structure/blob/master/pixi.js/pixi.js.jpg)
