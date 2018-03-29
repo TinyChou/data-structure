@@ -15,6 +15,7 @@
 </script>
 ```
 When call ``alert(a)`` in ``inner()`` the variable 'a' is not found in the function scope so we try to search the a 'a' along the scope chain 'inner -> outer -> window'. And we find a global 'a' variable then alert it.
+
 #2. Local variables have higher priority than global variables in a function.
 ```js
 <script type="text/javascript">
