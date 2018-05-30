@@ -12,5 +12,5 @@ if ($conn->connect_error) {
 }
 echo "Connected successfully";
 
-$conn.close();
+// if ($conn) $conn.close();
 ?>
