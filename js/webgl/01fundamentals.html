@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>01fundamentals</title>
+    <style>
+      * {
+        margin: 0px;
+        padding: 0px;
+      }
+
+      canvas {
+        width: 800px;
+        height: 480px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script id="gl-vertex-shader" type="notjs">
+      // an attribute will receive data from a buffer
+      attribute vec4 a_position;
+
+      // all shaders have a main function
+      void main() {
+        // gl_Position is a special variable a vertex shader
+        // is responsible for setting
+        gl_Position = a_position;
+      }
+    </script>
+    <script id="gl-fragment-shader" type="notjs">
+      // fragment shader don't have a default precision so we need
+      // to pick one, mediump is good default.
+      precision mediump float;
+
+      void main() {
+        // gl_FragColor is a special variable a fragment shader
+        // is responsible for setting
+        gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
+      }
+    </script>
+    <script type="text/javascript">
+      'use strict';
+
+      function createShader(gl, type, source) {
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (success) {
+          return shader;
+        }
+
+        console.log(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+      }
+
+      function createProgram(gl, vertexShader, fragmentShader) {
+        var program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (success) {
+          return program;
+        }
+
+        console.log(gl.getProgramInfoLog(program));
+        gl.deleteProgram(program);
+      }
+
+      /**
+       * Resize a canvas to match the size its displayed.
+       * @param {HTMLCanvasElement} canvas The canvas to resize.
+       * @param {number} [multiplier] amount to multiply by.
+       *    Pass in window.devicePixelRatio for native pixels.
+       * @return {boolean} true if the canvas was resized.
+       * @memberOf module:webgl-utils
+       */
+      function resizeCanvasToDisplaySize(canvas, multiplier) {
+        multiplier = multiplier || 1;
+        var width  = canvas.clientWidth  * multiplier | 0;
+        var height = canvas.clientHeight * multiplier | 0;
+        if (canvas.width !== width ||  canvas.height !== height) {
+          canvas.width  = width;
+          canvas.height = height;
+          return true;
+        }
+        return false;
+      }
+
+      function main() {
+        // get a webgl context
+        var canvas = document.querySelector('#canvas');
+        var gl = canvas.getContext('webgl');
+        if (!gl) return;
+
+        // get source strings for our GLSL shaders
+        var vertexShaderSource = document.querySelector('#gl-vertex-shader').text;
+        var fragmentShaderSource = document.querySelector('#gl-fragment-shader').text;
+
+        // create shaders
+        var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+        // link two shaders in to a program
+        var program = createProgram(gl, vertexShader, fragmentShader);
+
+        // look up where the vertex data needs to go.
+        var positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+
+        // create a buffer and put three 2d clip space pints in it
+        var positionBuffer = gl.createBuffer();
+
+        // bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+        var positions = [
+          0, 0,
+          0, 0.5,
+          0.7, 0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        // code above this line is initialization code.
+        // code below this line is rendering code.
+
+        resizeCanvasToDisplaySize(canvas, window.devicePixelRatio || 1);
+
+        // tell webgl how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        // clear the canvas
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // tell it to use our program (pair of shaders)
+        gl.useProgram(program);
+
+        // turn on the attribute
+        gl.enableVertexAttribArray(positionAttributeLocation);
+
+        // bind the position buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        // tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+        var size = 2; // 2 components per iteration
+        var type = gl.FLOAT; // the data is 32 bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get next position
+        var offset = 0; // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+          positionAttributeLocation, size, type, normalize, stride, offset
+        );
+
+        // draw
+        var primitiveType = gl.TRIANGLES;
+        var offset = 0;
+        var count = 3;
+        gl.drawArrays(primitiveType, offset, count);
+      }
+
+      main();
+    </script>
+  </body>
+</html>
